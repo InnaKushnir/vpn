@@ -68,6 +68,18 @@ def proxy_view_with_path(request, user_site_name, routes_on_original_site):
                 href = href.rstrip('/')
                 a_tag['href'] = f"{prefix}{href}"
 
+            # if href and not href.startswith('http'):
+            #     parsed_url = urlparse(href)
+            #     path = parsed_url.path  # Отримуємо шлях URL
+            #
+            #     if path.startswith('/'):
+            #         path = path[1:]  # Видаляємо початковий '/'
+            #
+            #     # Перетворюємо URL в потрібний вигляд
+            #     # Наприклад, лише шлях URL без домену та параметрів
+            #     modified_href = f"{prefix}{path}"
+            #     a_tag['href'] = modified_href
+
         modified_content = soup.prettify(formatter=None)
         return HttpResponse(modified_content, content_type=response.headers['content-type'])
     else:
