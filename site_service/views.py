@@ -1,4 +1,5 @@
 import urllib
+from urllib.parse import urljoin, urlparse
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.authentication import TokenAuthentication
@@ -25,15 +26,49 @@ def proxy_view(request, user_site_name):
         soup = BeautifulSoup(content, 'html.parser')
 
         prefix = f"/api/proxy/{user_site_name}/"
-        for a_tag in soup.find_all('a'):
-            href = a_tag.get('href')
+        for tag in soup.find_all(['a', 'img', 'script', 'link']):
 
-            if href and href.startswith('/'):
-                href = href[1:]
 
-            if href and not href.startswith(prefix) and not href.startswith('http'):
-                href = href.rstrip('/')
-                a_tag['href'] = f"{prefix}{href}"
+            if tag.has_attr('href'):
+                href = tag['href']
+                if href and not href.startswith(('http', '#', 'javascript:')):
+                    parsed_href = urlparse(href)
+                    parsed_url = urlparse(url)
+
+                    # Порівнюємо доменні імена
+                    if parsed_href.netloc == parsed_url.netloc:
+                        relative_path = parsed_href.path.replace(parsed_url.path, '')
+
+                        new_href = f"{prefix}{relative_path}"
+                        tag['href'] = new_href
+            #
+            #     if href and href.startswith('/'):
+            #         href = href[1:]
+            #
+            #     if href and not href.startswith(prefix) and not href.startswith('http'):
+            #         href = href.rstrip('/')
+            #         tag['href'] = f"{prefix}{href}"
+            #     else:
+            #         if href and href.startswith(str(url)):
+            #             relative_path = href.replace(str(url), '')
+            #
+            #             new_href = f"{prefix}{relative_path}"
+            #             tag['href'] = new_href
+
+        # for tag in soup.find_all(['a', 'img', 'script', 'link', 'scr']):
+        #     if tag.has_attr('href'):
+        #         href = tag['href']
+        #
+        #         if href and not href.startswith(('http', '#', 'javascript:')):
+        #             new_href = urljoin(prefix, href)
+        #             tag['href'] = new_href
+        #
+        #     if tag.has_attr('src'):
+        #         src = tag['src']
+        #
+        #         if src and not src.startswith(('http', '#', 'javascript:')):
+        #             new_src = urljoin(prefix, src)
+        #             tag['src'] = new_src
 
         modified_content = soup.prettify(formatter=None)
         return HttpResponse(modified_content, content_type=response.headers['content-type'])
@@ -58,27 +93,21 @@ def proxy_view_with_path(request, user_site_name, routes_on_original_site):
         soup = BeautifulSoup(content, 'html.parser')
 
         prefix = f"/api/proxy/{user_site_name}/"
-        for a_tag in soup.find_all('a'):
-            href = a_tag.get('href')
+        for tag in soup.find_all(['a', 'img', 'script', 'link']):
+            if tag.has_attr('href'):
+                href = tag['href']
 
-            if href and href.startswith('/'):
-                href = href[1:]
+                if href and not href.startswith(('http', '#', 'javascript:')):
+                    new_href = urljoin(prefix, href)
+                    tag['href'] = new_href
 
-            if href and not href.startswith(prefix) and not href.startswith('http'):
-                href = href.rstrip('/')
-                a_tag['href'] = f"{prefix}{href}"
+            if tag.has_attr('src'):
+                src = tag['src']
 
-            # if href and not href.startswith('http'):
-            #     parsed_url = urlparse(href)
-            #     path = parsed_url.path  # Отримуємо шлях URL
-            #
-            #     if path.startswith('/'):
-            #         path = path[1:]  # Видаляємо початковий '/'
-            #
-            #     # Перетворюємо URL в потрібний вигляд
-            #     # Наприклад, лише шлях URL без домену та параметрів
-            #     modified_href = f"{prefix}{path}"
-            #     a_tag['href'] = modified_href
+                if src and not src.startswith(('http', '#', 'javascript:')):
+                    new_src = urljoin(prefix, src)
+                    tag['src'] = new_src
+
 
         modified_content = soup.prettify(formatter=None)
         return HttpResponse(modified_content, content_type=response.headers['content-type'])
