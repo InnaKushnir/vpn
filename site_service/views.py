@@ -30,30 +30,30 @@ def proxy_view(request, user_site_name):
 
 
             if tag.has_attr('href'):
-                href = tag['href']
-                if href and not href.startswith(('http', '#', 'javascript:')):
-                    parsed_href = urlparse(href)
-                    parsed_url = urlparse(url)
-
-                    # Порівнюємо доменні імена
-                    if parsed_href.netloc == parsed_url.netloc:
-                        relative_path = parsed_href.path.replace(parsed_url.path, '')
-
-                        new_href = f"{prefix}{relative_path}"
-                        tag['href'] = new_href
+            #     href = tag['href']
+            #     if href and not href.startswith(('http', '#', 'javascript:')):
+            #         parsed_href = urlparse(href)
+            #         parsed_url = urlparse(url)
             #
-            #     if href and href.startswith('/'):
-            #         href = href[1:]
-            #
-            #     if href and not href.startswith(prefix) and not href.startswith('http'):
-            #         href = href.rstrip('/')
-            #         tag['href'] = f"{prefix}{href}"
-            #     else:
-            #         if href and href.startswith(str(url)):
-            #             relative_path = href.replace(str(url), '')
+            #         # Порівнюємо доменні імена
+            #         if parsed_href.netloc == parsed_url.netloc:
+            #             relative_path = parsed_href.path.replace(parsed_url.path, '')
             #
             #             new_href = f"{prefix}{relative_path}"
             #             tag['href'] = new_href
+            #
+                if href and href.startswith('/'):
+                    href = href[1:]
+
+                if href and not href.startswith(prefix) and not href.startswith('http'):
+                    href = href.rstrip('/')
+                    tag['href'] = f"{prefix}{href}"
+                else:
+                    if href and href.startswith(str(url)):
+                        relative_path = href.replace(str(url), '')
+
+                        new_href = f"{prefix}{relative_path}"
+                        tag['href'] = new_href
 
         # for tag in soup.find_all(['a', 'img', 'script', 'link', 'scr']):
         #     if tag.has_attr('href'):
