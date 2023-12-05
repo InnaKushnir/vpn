@@ -30,7 +30,7 @@ def proxy_view(request, user_site_name):
 
 
             if tag.has_attr('href'):
-            #     href = tag['href']
+                href = tag['href']
             #     if href and not href.startswith(('http', '#', 'javascript:')):
             #         parsed_href = urlparse(href)
             #         parsed_url = urlparse(url)
@@ -54,6 +54,13 @@ def proxy_view(request, user_site_name):
 
                         new_href = f"{prefix}{relative_path}"
                         tag['href'] = new_href
+            else:
+                if tag.has_attr('src'):
+                    src = tag['src']
+
+                    if src and not src.startswith(('http', '#', 'javascript:')):
+                        new_src = urljoin(prefix, src)
+                        tag['src'] = new_src
 
         # for tag in soup.find_all(['a', 'img', 'script', 'link', 'scr']):
         #     if tag.has_attr('href'):
