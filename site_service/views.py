@@ -54,6 +54,13 @@ def proxy_view(request, user_site_name):
 
                         new_href = f"{prefix}{relative_path}"
                         tag['href'] = new_href
+            else:
+                if tag.has_attr('src'):
+                    src = tag['src']
+
+                    if src and not src.startswith(('http', '#', 'javascript:')):
+                        href = href.rstrip('/')
+                        tag['src'] = f"{prefix}{src}"
 
         # for tag in soup.find_all(['a', 'img', 'script', 'link', 'scr']):
         #     if tag.has_attr('href'):
@@ -87,7 +94,6 @@ def proxy_view_with_path(request, user_site_name, routes_on_original_site):
     user = site.user
     site_trans = SiteTransition.objects.create(user=user, from_site=from_site, to_site=to_site)
 
-
     if response.status_code == 200:
         content = response.content
         soup = BeautifulSoup(content, 'html.parser')
@@ -97,17 +103,23 @@ def proxy_view_with_path(request, user_site_name, routes_on_original_site):
             if tag.has_attr('href'):
                 href = tag['href']
 
-                if href and not href.startswith(('http', '#', 'javascript:')):
-                    new_href = urljoin(prefix, href)
-                    tag['href'] = new_href
+                if href and href.startswith('/'):
+                    href = href[1:]
 
-            if tag.has_attr('src'):
+                if href and not href.startswith(('http', 'https')):
+                    href = href.rstrip('/')
+                    tag['href'] = f"{prefix}{href}"
+                elif href and href.startswith(str(url)):
+                    relative_path = href.replace(str(url), '')
+
+                    new_href = f"{prefix}{relative_path}"
+                    tag['href'] = new_href
+            elif tag.has_attr('src'):
                 src = tag['src']
 
-                if src and not src.startswith(('http', '#', 'javascript:')):
-                    new_src = urljoin(prefix, src)
-                    tag['src'] = new_src
-
+                if src and not src.startswith(('http', 'https')):
+                    src = src.rstrip('/')
+                    tag['src'] = f"{prefix}{src}"
 
         modified_content = soup.prettify(formatter=None)
         return HttpResponse(modified_content, content_type=response.headers['content-type'])
