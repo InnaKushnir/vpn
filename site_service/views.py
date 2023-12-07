@@ -30,7 +30,7 @@ def proxy_view(request, user_site_name):
 
 
             if tag.has_attr('href'):
-            #     href = tag['href']
+                href = tag['href']
             #     if href and not href.startswith(('http', '#', 'javascript:')):
             #         parsed_href = urlparse(href)
             #         parsed_url = urlparse(url)
