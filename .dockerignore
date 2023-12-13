@@ -1,0 +1,7 @@
+
+*.log
+*.tmp
+
+*.pyc
+__pycache__
+*.sqlite3
